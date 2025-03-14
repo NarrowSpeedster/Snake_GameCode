@@ -22,7 +22,7 @@ Config = {
     "ScreenY": 900,
     "ScreenTitle": "Narrows Snake Game!",
     "background": Colors["MintyGreen"],
-    "BlockSize": 10,
+    "BlockSize": 20,  # Increased block size by "20" was "10"
     "speed": 15,
 }
 
@@ -42,8 +42,8 @@ def reset_game():
 
 def RandomizeFoodLocation():
     while True:
-        Food["X"] = round(random.randrange(0, Config["ScreenX"] - Config["BlockSize"]), -1)
-        Food["Y"] = round(random.randrange(0, Config["ScreenY"] - Config["BlockSize"]), -1)
+        Food["X"] = round(random.randrange(0, Config["ScreenX"] - Config["BlockSize"], Config["BlockSize"]))
+        Food["Y"] = round(random.randrange(0, Config["ScreenY"] - Config["BlockSize"], Config["BlockSize"]))
         if [Food["X"], Food["Y"]] not in Snake["Body"]:
             break
 
