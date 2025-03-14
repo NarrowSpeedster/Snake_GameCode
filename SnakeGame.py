@@ -80,11 +80,13 @@ def GameOver(screen):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if button_rect.collidepoint(event.pos):
                     return  # Exit the function to restart the game
                 if quit_button_rect.collidepoint(event.pos):
+                    pygame.quit()
                     sys.exit()  # Exit the game
 
 def game_loop(screen, clock):
@@ -98,6 +100,7 @@ def game_loop(screen, clock):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
