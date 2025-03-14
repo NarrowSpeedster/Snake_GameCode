@@ -1,5 +1,5 @@
 # Snake_GameCode
-Practicing pygame by making a basic snake game this is a WP.
+Practicing pygame functions by making a basic snake game.
 A key factor into making a game needs a library a library is a group of varaibles that the game grabs from that include "color" "background" 
 And or "speed" for if you have a player this determins how fast that player will go and "size" determins how big it will be in pixels generaly not sure 
 how to be specific in that area just yet.
