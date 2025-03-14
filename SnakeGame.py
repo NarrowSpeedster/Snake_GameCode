@@ -22,19 +22,19 @@ Config = {
     "ScreenY": 900,
     "ScreenTitle": "Narrows Snake Game!",
     "background": Colors["MintyGreen"],
-    "BlockSize": 20,  # Increased block size by "20" was "10"
+    "BlockSize": 10,  # Reverted block size back to 10 was 20
     "speed": 15,
 }
 
 def reset_game():
     global Snake, Food
     Snake = {
-        "Body": [[Config["ScreenX"] / 2, Config["ScreenY"] / 2]],
+        "Body": [[Config["ScreenX"] // 2, Config["ScreenY"] // 2]],
         "Direction": "none",
         "Color": Colors["Red"],
     }
     Food = {
-        "X": 1,
+        "X": 0,
         "Y": 0,
         "Color": Colors["LightBlue"], 
     }
@@ -57,19 +57,26 @@ def DrawGame(screen):
 def GameOver(screen):
     font = pygame.font.SysFont(None, 75)
     text = font.render("Game Over", True, Colors["Black"])
-    screen.blit(text, [Config["ScreenX"] / 2 - 150, Config["ScreenY"] / 2 - 50])
+    screen.blit(text, [Config["ScreenX"] // 2 - 150, Config["ScreenY"] // 2 - 50])
     pygame.display.update()
     pygame.time.wait(2000)
 
     # Add a restart button
     button_font = pygame.font.SysFont(None, 50)
     button_text = button_font.render("Restart", True, Colors["Black"])
-    button_rect = button_text.get_rect(center=(Config["ScreenX"] / 2, Config["ScreenY"] / 2 + 50))
+    button_rect = button_text.get_rect(center=(Config["ScreenX"] // 2, Config["ScreenY"] // 2 + 50))
     pygame.draw.rect(screen, Colors["LightBlue"], button_rect.inflate(20, 10))
     screen.blit(button_text, button_rect)
+
+    # Add a quit button
+    quit_button_text = button_font.render("Quit Game", True, Colors["Black"])
+    quit_button_rect = quit_button_text.get_rect(center=(Config["ScreenX"] // 2, Config["ScreenY"] // 2 + 120))
+    pygame.draw.rect(screen, Colors["LightBlue"], quit_button_rect.inflate(20, 10))
+    screen.blit(quit_button_text, quit_button_rect)
+
     pygame.display.update()
 
-    # Wait for the user to click the restart button
+    # Wait for the user to click the restart or quit button
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -77,6 +84,8 @@ def GameOver(screen):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if button_rect.collidepoint(event.pos):
                     return  # Exit the function to restart the game
+                if quit_button_rect.collidepoint(event.pos):
+                    sys.exit()  # Exit the game
 
 def game_loop(screen, clock):
     direction_map = {
