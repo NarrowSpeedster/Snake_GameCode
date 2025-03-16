@@ -30,7 +30,7 @@ Config = {
     "SpecialFoodCount": 14,  # Number of special food items (increased by 600%)
     "PinkFoodCount": 7,  # Number of pink special food items (increased by 600%)
     "FoodCollectThreshold": 25,  # Number of food items to collect before randomizing locations
-    "WinningScore": 50,  # Score needed to win the game
+    "WinningScore": 100,  # Score needed to win the game
 }
 
 def reset_game():
