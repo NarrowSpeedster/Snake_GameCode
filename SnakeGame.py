@@ -205,7 +205,7 @@ def WinGame(screen):
             "particles": [{"x": 0, "y": 0, "dx": random.uniform(-2, 2), "dy": random.uniform(-2, 2), "life": 80, "color": (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))} for _ in range(100)]
         })
 
-    for _ in range(200):  # Display fireworks for 500 frames
+    for _ in range(500):  # Display fireworks for 500 frames
         screen.fill(Config["background"])
         screen.blit(text, [Config["ScreenX"] // 2 - 250, Config["ScreenY"] // 2 - 50])
         
@@ -218,7 +218,7 @@ def WinGame(screen):
                     pygame.draw.circle(screen, particle["color"], (int(firework["x"] + particle["x"]), int(firework["y"] + particle["y"])), 4)  # Increased particle size to 4
         
         pygame.display.update()
-        pygame.time.delay(65) # Delay for 65 milliseconds for the fireworks to show
+        pygame.time.delay(50)
 
     # Add a play again button
     button_font = pygame.font.SysFont(None, 50)
@@ -247,6 +247,22 @@ def WinGame(screen):
                 if quit_button_rect.collidepoint(event.pos):
                     pygame.quit()
                     sys.exit()  # Exit the game
+
+def PauseGame(screen):
+    font = pygame.font.SysFont(None, 75)
+    text = font.render("Game Paused", True, Colors["Black"])
+    screen.blit(text, [Config["ScreenX"] // 2 - 200, Config["ScreenY"] // 2 - 50])
+    pygame.display.update()
+
+    # Wait for the user to unpause the game
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_g:
+                    return  # Exit the function to unpause the game
 
 def game_loop(screen, clock):
     global Score, FoodCollected
@@ -279,6 +295,8 @@ def game_loop(screen, clock):
                 if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                     if Snake["Direction"] != "up":
                         Snake["Direction"] = "down"
+                if event.key == pygame.K_g:
+                    PauseGame(screen)  # Pause the game when "g" is pressed
 
         if Snake["Direction"] != "none":
             new_head = [
