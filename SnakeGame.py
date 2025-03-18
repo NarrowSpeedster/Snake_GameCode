@@ -2,7 +2,7 @@ import sys
 import pygame
 import random
 import json
-from game_objects import reset_game, DrawGame, RandomizeFoodLocation, RandomizeSpecialFoodLocation, RandomizePinkFoodLocation, draw_walls, Snake, Food, SpecialFood, PinkFood, Score, FoodCollected
+from game_objects.py import reset_game, DrawGame, RandomizeFoodLocation, RandomizeSpecialFoodLocation, RandomizePinkFoodLocation, draw_walls, Snake, Food, SpecialFood, PinkFood, Score, FoodCollected
 
 pygame.init()
 
