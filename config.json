@@ -1,0 +1,29 @@
+{
+    "Colors": {
+        "MintyGreen": [40, 210, 180],
+        "Green": [0, 255, 0],
+        "LightBlue": [0, 128, 255],
+        "Black": [0, 0, 0],
+        "White": [255, 255, 255],
+        "Gray": [128, 128, 128],
+        "Yellow": [255, 255, 0],
+        "Pink": [255, 105, 180],
+        "Red": [255, 0, 0]
+    },
+    "Config": {
+        "ScreenX": 1000,
+        "ScreenY": 900,
+        "ScreenTitle": "Narrows Snake Game!",
+        "background": "MintyGreen",
+        "BlockSize": 10,
+        "speed": 15,
+        "WallThickness": 10,
+        "SpecialFoodChance": 0.75,
+        "PinkFoodChance": 0.5,
+        "FoodCount": 30,
+        "SpecialFoodCount": 14,
+        "PinkFoodCount": 7,
+        "FoodCollectThreshold": 25,
+        "WinningScore": 100
+    }
+}

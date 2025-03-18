@@ -1,160 +1,21 @@
 import sys
 import pygame
 import random
+import json
+from game_objects import reset_game, DrawGame, RandomizeFoodLocation, RandomizeSpecialFoodLocation, RandomizePinkFoodLocation, draw_walls, Snake, Food, SpecialFood, PinkFood, Score, FoodCollected
 
 pygame.init()
 
-Colors = {
-    "MintyGreen": (40, 210, 180),
-    "Green": (0, 255, 0),  # Green color for the snake body
-    "LightBlue": (0, 128, 255),
-    "Black": (0, 0, 0),
-    "White": (255, 255, 255),
-    "Gray": (128, 128, 128),  # Gray color for the tail
-    "Yellow": (255, 255, 0),  # Yellow color for the special food
-    "Pink": (255, 105, 180),  # Pink color for the new special food
-    "Red": (255, 0, 0),  # Red color for the tongue
-}
+# Load configuration from config.json
+with open('config.json') as config_file:
+    config_data = json.load(config_file)
 
-Config = {
-    "ScreenX": 1000,
-    "ScreenY": 900,
-    "ScreenTitle": "Narrows Snake Game!",
-    "background": Colors["MintyGreen"],
-    "BlockSize": 10,  # Reverted block size back to 10 was 20
-    "speed": 15,
-    "WallThickness": 10,  # Thickness of the black wall
-    "SpecialFoodChance": 0.75,  # Increased to 75% chance for special food to appear
-    "PinkFoodChance": 0.5,  # Increased to 50% chance for pink special food to appear
-    "FoodCount": 30,  # Number of regular food items
-    "SpecialFoodCount": 14,  # Number of special food items (increased by 600%)
-    "PinkFoodCount": 7,  # Number of pink special food items (increased by 600%)
-    "FoodCollectThreshold": 25,  # Number of food items to collect before randomizing locations
-    "WinningScore": 100,  # Score needed to win the game
-}
+Colors = {key: tuple(value) for key, value in config_data["Colors"].items()}
+Config = config_data["Config"]
+Config["background"] = Colors[Config["background"]]
 
-def reset_game():
-    global Snake, Food, SpecialFood, PinkFood, Score, FoodCollected
-    Snake = {
-        "Body": [[Config["ScreenX"] // 2, Config["ScreenY"] // 2]],
-        "Direction": "none",
-        "Color": Colors["Green"],  # Changed snake body color to green
-    }
-    Food = []
-    SpecialFood = []
-    PinkFood = []
-    Score = 0  # Initialize score
-    FoodCollected = 0  # Initialize food collected counter
-    RandomizeFoodLocation()
-    RandomizeSpecialFoodLocation()
-    RandomizePinkFoodLocation()
-
-def RandomizeFoodLocation():
-    Food.clear()
-    for _ in range(Config["FoodCount"]):
-        while True:
-            x = round(random.randrange(Config["WallThickness"], Config["ScreenX"] - Config["WallThickness"] - Config["BlockSize"], Config["BlockSize"]))
-            y = round(random.randrange(Config["WallThickness"], Config["ScreenY"] - Config["WallThickness"] - Config["BlockSize"], Config["BlockSize"]))
-            if [x, y] not in Snake["Body"] and [x, y] not in Food:
-                Food.append({"X": x, "Y": y, "Color": Colors["LightBlue"]})
-                break
-
-def RandomizeSpecialFoodLocation():
-    SpecialFood.clear()
-    for _ in range(int(Config["SpecialFoodCount"])):
-        if random.random() < Config["SpecialFoodChance"]:
-            while True:
-                x = round(random.randrange(Config["WallThickness"], Config["ScreenX"] - Config["WallThickness"] - Config["BlockSize"], Config["BlockSize"]))
-                y = round(random.randrange(Config["WallThickness"], Config["ScreenY"] - Config["WallThickness"] - Config["BlockSize"], Config["BlockSize"]))
-                if [x, y] not in Snake["Body"] and [x, y] not in Food and [x, y] not in SpecialFood:
-                    SpecialFood.append({"X": x, "Y": y, "Color": Colors["Yellow"]})
-                    break
-
-def RandomizePinkFoodLocation():
-    PinkFood.clear()
-    for _ in range(int(Config["PinkFoodCount"])):
-        if random.random() < Config["PinkFoodChance"]:
-            while True:
-                x = round(random.randrange(Config["WallThickness"], Config["ScreenX"] - Config["WallThickness"] - Config["BlockSize"], Config["BlockSize"]))
-                y = round(random.randrange(Config["WallThickness"], Config["ScreenY"] - Config["WallThickness"] - Config["BlockSize"], Config["BlockSize"]))
-                if [x, y] not in Snake["Body"] and [x, y] not in Food and [x, y] not in SpecialFood and [x, y] not in PinkFood:
-                    PinkFood.append({"X": x, "Y": y, "Color": Colors["Pink"]})
-                    break
-
-def DrawGame(screen, show_instructions):
-    screen.fill(Config["background"])
-    
-    # Draw the black wall around the edges
-    pygame.draw.rect(screen, Colors["Black"], [0, 0, Config["ScreenX"], Config["WallThickness"]])  # Top wall
-    pygame.draw.rect(screen, Colors["Black"], [0, 0, Config["WallThickness"], Config["ScreenY"]])  # Left wall
-    pygame.draw.rect(screen, Colors["Black"], [0, Config["ScreenY"] - Config["WallThickness"], Config["ScreenX"], Config["WallThickness"]])  # Bottom wall
-    pygame.draw.rect(screen, Colors["Black"], [Config["ScreenX"] - Config["WallThickness"], 0, Config["WallThickness"], Config["ScreenY"]])  # Right wall
-
-    for i, segment in enumerate(Snake["Body"]):
-        if i == len(Snake["Body"]) - 1:
-            color = Colors["Gray"]  # Draw the tail in gray
-        else:
-            color = Snake["Color"]
-        pygame.draw.rect(screen, color, [segment[0], segment[1], Config["BlockSize"], Config["BlockSize"]])
-    
-    # Draw eyes on the snake's head
-    head = Snake["Body"][0]
-    eye_size = Config["BlockSize"] // 5
-    eye_offset = Config["BlockSize"] // 4
-
-    if Snake["Direction"] == "left":
-        eye_positions = [
-            (head[0] + eye_offset, head[1] + eye_offset),
-            (head[0] + eye_offset, head[1] + Config["BlockSize"] - eye_offset)
-        ]
-        tongue_position = (head[0] - Config["BlockSize"], head[1] + Config["BlockSize"] // 2)
-    elif Snake["Direction"] == "right":
-        eye_positions = [
-            (head[0] + Config["BlockSize"] - eye_offset, head[1] + eye_offset),
-            (head[0] + Config["BlockSize"] - eye_offset, head[1] + Config["BlockSize"] - eye_offset)
-        ]
-        tongue_position = (head[0] + Config["BlockSize"] * 2, head[1] + Config["BlockSize"] // 2)
-    elif Snake["Direction"] == "up":
-        eye_positions = [
-            (head[0] + eye_offset, head[1] + eye_offset),
-            (head[0] + Config["BlockSize"] - eye_offset, head[1] + eye_offset)
-        ]
-        tongue_position = (head[0] + Config["BlockSize"] // 2, head[1] - Config["BlockSize"])
-    elif Snake["Direction"] == "down":
-        eye_positions = [
-            (head[0] + eye_offset, head[1] + Config["BlockSize"] - eye_offset),
-            (head[0] + Config["BlockSize"] - eye_offset, head[1] + Config["BlockSize"] - eye_offset)
-        ]
-        tongue_position = (head[0] + Config["BlockSize"] // 2, head[1] + Config["BlockSize"] * 2)
-    else:
-        eye_positions = []
-        tongue_position = None
-
-    for pos in eye_positions:
-        pygame.draw.circle(screen, Colors["White"], pos, eye_size)
-
-    if tongue_position:
-        pygame.draw.line(screen, Colors["Red"], (head[0] + Config["BlockSize"] // 2, head[1] + Config["BlockSize"] // 2), tongue_position, 2)
-
-    for food in Food:
-        pygame.draw.rect(screen, food["Color"], [food["X"], food["Y"], Config["BlockSize"], Config["BlockSize"]])
-    for food in SpecialFood:
-        pygame.draw.rect(screen, food["Color"], [food["X"], food["Y"], Config["BlockSize"], Config["BlockSize"]])
-    for food in PinkFood:
-        pygame.draw.rect(screen, food["Color"], [food["X"], food["Y"], Config["BlockSize"], Config["BlockSize"]])
-
-    # Display the score
-    font = pygame.font.SysFont(None, 35)
-    score_text = font.render(f"Score: {Score}", True, Colors["Black"])
-    screen.blit(score_text, [10, 10])
-
-    # Display the instructions
-    if show_instructions:
-        instructions_font = pygame.font.SysFont(None, 50)
-        instructions_text = instructions_font.render("To Start Move Around with WASD!", True, Colors["Black"])
-        screen.blit(instructions_text, [Config["ScreenX"] // 2 - 300, 50])
-
-    pygame.display.update()
+EYE_SIZE = Config["BlockSize"] // 5
+EYE_OFFSET = Config["BlockSize"] // 4
 
 def GameOver(screen):
     font = pygame.font.SysFont(None, 75)
@@ -197,13 +58,11 @@ def WinGame(screen):
     screen.blit(text, [Config["ScreenX"] // 2 - 250, Config["ScreenY"] // 2 - 50])  # Adjusted x-coordinate to move text to the left
     pygame.display.update()
 
-    fireworks = []
-    for _ in range(10):  # Create 10 fireworks
-        fireworks.append({
-            "x": random.randint(100, Config["ScreenX"] - 100),
-            "y": random.randint(50, Config["ScreenY"] // 2 - 100),
-            "particles": [{"x": 0, "y": 0, "dx": random.uniform(-2, 2), "dy": random.uniform(-2, 2), "life": 80, "color": (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))} for _ in range(100)]
-        })
+    fireworks = [{
+        "x": random.randint(100, Config["ScreenX"] - 100),
+        "y": random.randint(50, Config["ScreenY"] // 2 - 100),
+        "particles": [{"x": 0, "y": 0, "dx": random.uniform(-2, 2), "dy": random.uniform(-2, 2), "life": 80, "color": (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))} for _ in range(100)]
+    } for _ in range(10)]
 
     for _ in range(500):  # Display fireworks for 500 frames
         screen.fill(Config["background"])
@@ -264,6 +123,20 @@ def PauseGame(screen):
                 if event.key == pygame.K_g:
                     return  # Exit the function to unpause the game
 
+def handle_direction_change(event):
+    if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+        if Snake["Direction"] != "right":
+            Snake["Direction"] = "left"
+    elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+        if Snake["Direction"] != "left":
+            Snake["Direction"] = "right"
+    elif event.key == pygame.K_UP or event.key == pygame.K_w:
+        if Snake["Direction"] != "down":
+            Snake["Direction"] = "up"
+    elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+        if Snake["Direction"] != "up":
+            Snake["Direction"] = "down"
+
 def game_loop(screen, clock):
     global Score, FoodCollected
     direction_map = {
@@ -283,18 +156,7 @@ def game_loop(screen, clock):
             if event.type == pygame.KEYDOWN:
                 if Snake["Direction"] == "none":
                     show_instructions = False  # Hide instructions when the snake starts moving
-                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    if Snake["Direction"] != "right":
-                        Snake["Direction"] = "left"                
-                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    if Snake["Direction"] != "left":
-                        Snake["Direction"] = "right"              
-                if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    if Snake["Direction"] != "down":
-                        Snake["Direction"] = "up"              
-                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                    if Snake["Direction"] != "up":
-                        Snake["Direction"] = "down"
+                handle_direction_change(event)
                 if event.key == pygame.K_g:
                     PauseGame(screen)  # Pause the game when "g" is pressed
 
@@ -346,9 +208,9 @@ def game_loop(screen, clock):
 
             # Check if the food collected threshold is reached
             if FoodCollected >= Config["FoodCollectThreshold"]:
-                RandomizeFoodLocation()
-                RandomizeSpecialFoodLocation()
-                RandomizePinkFoodLocation()
+                RandomizeFoodLocation(Config, Colors)
+                RandomizeSpecialFoodLocation(Config, Colors)
+                RandomizePinkFoodLocation(Config, Colors)
                 FoodCollected = 0  # Reset food collected counter
 
             # Check for winning condition
@@ -363,7 +225,7 @@ def game_loop(screen, clock):
                 GameOver(screen)
                 return  # Exit the game loop to restart the game
 
-        DrawGame(screen, show_instructions)
+        DrawGame(screen, Config, Colors, show_instructions)
         clock.tick(Config["speed"])
 
 def main():
@@ -373,7 +235,7 @@ def main():
     pygame.display.update()
 
     while True:
-        reset_game()
+        reset_game(Config, Colors)
         game_loop(screen, clock)
 
 if __name__ == "__main__":
